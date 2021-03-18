@@ -13,7 +13,10 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.stream.StreamSource;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 @Service
@@ -71,54 +74,5 @@ public class PdfGenerator {
         } finally {
             tempFile.delete();
         }
-    }
-
-    public ByteArrayInputStream createPdfFile(InputStream configInputStream,
-                                              InputStream xmlDataFileInputStream,
-                                              InputStream templateFileInputStream) {
-        System.out.println("Create pdf file ...");
-        ByteArrayOutputStream pdfOutputStream = new ByteArrayOutputStream();
-        //  holds references to configuration information and cached data
-        //  reuse this instance if you plan to render multiple documents
-        //  holds references to configuration information and cached data
-        //  reuse this instance if you plan to render multiple documents
-//
-        try {
-            DefaultConfigurationBuilder cfgBuilder = new DefaultConfigurationBuilder();
-            Configuration cfg = cfgBuilder.build(configInputStream);
-            FopFactoryBuilder fopFactoryBuilder = new FopFactoryBuilder(new File(".").toURI()).setConfiguration(cfg);
-            FopFactory fopFactory = fopFactoryBuilder.build();
-
-
-//        FopFactory fopFactory = FopFactory.newInstance(new File(".").toURI());
-            FOUserAgent userAgent = fopFactory.newFOUserAgent();
-
-            // set output format
-            Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, userAgent, pdfOutputStream);
-
-            // Load template
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer(new StreamSource(templateFileInputStream));
-
-            // Set value of parameters in stylesheet
-            transformer.setParameter("version", "1.0");
-
-
-            String body = IOUtils.toString(xmlDataFileInputStream, StandardCharsets.UTF_8.name());
-
-            body = StringEscapeUtils.unescapeJava(body);
-
-            // Input for XSLT transformations
-            Source xmlSource = new StreamSource(IOUtils.toInputStream(body));
-
-
-            Result result = new SAXResult(fop.getDefaultHandler());
-
-
-            transformer.transform(xmlSource, result);
-        } catch (Exception ex) {
-            System.out.println(ex.getMessage());
-        }
-        return new ByteArrayInputStream((pdfOutputStream.toByteArray()));
     }
 }
